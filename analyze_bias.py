@@ -1,5 +1,15 @@
-import openai
+from openai import OpenAI
 from typing import Dict, Tuple
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env
+load_dotenv()
+
+# Set the OpenAI API key
+client = OpenAI(
+  api_key=os.environ['OPENAI_API_KEY'],  # this is also the default, it can be omitted
+)
 
 def analyze_bias(data: Dict, context: str, demographic: str) -> Tuple[str, int]:
     """
@@ -30,23 +40,26 @@ def analyze_bias(data: Dict, context: str, demographic: str) -> Tuple[str, int]:
     3. Historical patterns
     4. Methodological fairness
     
-    Provide:
-    1. A concise explanation of whether bias exists and why
-    2. A numerical score from 0-100 where 0 means no bias and 100 means extreme bias
+    Provide your response in the following exact format:
+    1. A concise explanation of whether bias exists and why, ending with a period.
+    2. A numerical score from 0 to 100, where 0 means no bias and 100 means extreme bias.
     
-    Format the response as: "EXPLANATION|SCORE"
+    Use the format: "EXPLANATION|SCORE"
+    Example: "There is a slight bias due to underrepresentation of certain groups.|25"
     """
-    
+
+
     try:
         # Make the API call
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are an expert in data analysis and bias detection."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3  # Lower temperature for more consistent analysis
+            temperature=0.3
         )
+
         
         # Parse the response
         response_text = response.choices[0].message.content
@@ -86,19 +99,19 @@ def format_bias_report(explanation: str, score: int) -> str:
     return report
 
 # Example usage
-# if __name__ == "__main__":
-#     # Example data
-#     sample_data = {
-#         "department_hires": {
-#             "engineering": {"male": 75, "female": 25},
-#             "marketing": {"male": 45, "female": 55},
-#             "sales": {"male": 60, "female": 40}
-#         }
-#     }
+if __name__ == "__main__":
+    # Example data
+    sample_data = {
+        "department_hires": {
+            "engineering": {"male": 75, "female": 25},
+            "marketing": {"male": 45, "female": 55},
+            "sales": {"male": 60, "female": 40}
+        }
+    }
     
-#     sample_context = "Annual hiring statistics for different departments in a tech company"
-#     sample_demographic = "gender"
+    sample_context = "Annual hiring statistics for different departments in a tech company"
+    sample_demographic = "gender"
     
-#     explanation, score = analyze_bias(sample_data, sample_context, sample_demographic)
-#     report = format_bias_report(explanation, score)
-#     print(report)
+    explanation, score = analyze_bias(sample_data, sample_context, sample_demographic)
+    report = format_bias_report(explanation, score)
+    print(report)
