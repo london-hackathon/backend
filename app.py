@@ -4,6 +4,7 @@ import logging
 import os
 from gender_count import count_gender  # Import gender counting function
 from analyze_bias import analyze_bias  # Import bias analysis function
+from age_count import count_age  # Import age counting function
 
 # Set up basic configuration for logging
 logging.basicConfig(level=logging.DEBUG)
@@ -37,13 +38,21 @@ def analysis_endpoint():
 
         # Call the appropriate function based on the demographic
         if demographic.lower() in ["gender", "sex"]:
+            # Gender demographic processing
             gender_data = count_gender(file_path, "Sex")
             if "error" in gender_data:
                 return jsonify(gender_data), 400
             processed_data = gender_data
+
+        elif demographic.lower() == "age":
+            # Age demographic processing
+            age_data = count_age(file_path)
+            if "error" in age_data:
+                return jsonify(age_data), 400
+            processed_data = age_data
+
         else:
             return jsonify({'error': f"Unsupported demographic: {demographic}"}), 400
-
 
         # Call the analysis function
         explanation, score = analyze_bias(processed_data, description, demographic)
