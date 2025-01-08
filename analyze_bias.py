@@ -29,23 +29,24 @@ def analyze_bias(data: Dict, context: str, demographic: str) -> Tuple[str, int]:
     # Construct the prompt for the API
     prompt = f"""
     Please analyze the following data for potential bias against the specified demographic category.
-    
+
     Data: {data}
     Context: {context}
     Demographic Category: {demographic}
-    
+
     Analyze whether this data shows evidence of bias. Consider:
     1. Statistical representation
     2. Contextual factors
     3. Historical patterns
     4. Methodological fairness
-    
+
     Provide your response in the following exact format:
-    1. A concise explanation of whether bias exists and why, ending with a period.
-    2. A numerical score from 0 to 100, where 0 means no bias and 100 means extreme bias.
-    
-    Use the format: "EXPLANATION|SCORE"
-    Example: "There is a slight bias due to underrepresentation of certain groups.|25"
+    EXPLANATION|SCORE
+
+    Notes:
+    - Replace "EXPLANATION" with your concise analysis.
+    - Replace "SCORE" with a numeric value between 0 and 100 (no quotes, no additional text).
+    - Example: "There is a slight bias due to underrepresentation of certain groups.|25"
     """
 
 
@@ -97,21 +98,3 @@ def format_bias_report(explanation: str, score: int) -> str:
     """
     
     return report
-
-# Example usage
-if __name__ == "__main__":
-    # Example data
-    sample_data = {
-        "department_hires": {
-            "engineering": {"male": 75, "female": 25},
-            "marketing": {"male": 45, "female": 55},
-            "sales": {"male": 60, "female": 40}
-        }
-    }
-    
-    sample_context = "Annual hiring statistics for different departments in a tech company"
-    sample_demographic = "gender"
-    
-    explanation, score = analyze_bias(sample_data, sample_context, sample_demographic)
-    report = format_bias_report(explanation, score)
-    print(report)
