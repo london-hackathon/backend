@@ -70,7 +70,8 @@ def analysis_endpoint():
             "explanation": explanation,
             "score": score,
             "demographic": demographic,
-            "processed_data": processed_data
+            "processed_data": processed_data,
+            "description": description
         }
         return jsonify(result), 200
     except Exception as e:
