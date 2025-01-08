@@ -41,7 +41,3 @@ def count_gender(file_path, gender_column):
         return result
     except Exception as e:
         return {"error": str(e)}
-
-# Example usage
-result = count_gender("CardioData.csv", "Sex")
-print(result)

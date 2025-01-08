@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
 import os
+from gender_count import count_gender  # Import gender counting function
+from analyze_bias import analyze_bias  # Import bias analysis function
 
-#Set up basic configuration for logging
+# Set up basic configuration for logging
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
@@ -13,11 +15,11 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 @app.route('/api/bias', methods=['POST'])
 def analysis_endpoint():
     try:
-        # Check if the request has a file part
+        # Check if the request contains a file part
         if 'file' not in request.files:
             return jsonify({'error': 'No file part in the request'}), 400
         
-        file = request.files['file']  # Get the uploaded CSV file
+        file = request.files['file']
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
         
@@ -28,25 +30,36 @@ def analysis_endpoint():
         if not demographic or not description:
             return jsonify({'error': 'Demographic and description are required'}), 400
 
-        # Log the received data for debugging
-        logging.debug(f"Received demographic: {demographic}")
-        logging.debug(f"Received description: {description}")
-        logging.debug(f"Received file: {file.filename}")
+        # Save the uploaded file temporarily
+        file_path = os.path.join("uploads", file.filename)
+        os.makedirs("uploads", exist_ok=True)  # Ensure the uploads directory exists
+        file.save(file_path)
 
-        # Perform your processing here (e.g., saving the file, processing data)
+        # Call the appropriate function based on the demographic
+        if demographic.lower() in ["gender", "sex"]:
+            gender_data = count_gender(file_path, "Sex")
+            if "error" in gender_data:
+                return jsonify(gender_data), 400
+            processed_data = gender_data
+        else:
+            return jsonify({'error': f"Unsupported demographic: {demographic}"}), 400
+
+
+        # Call the analysis function
+        explanation, score = analyze_bias(processed_data, description, demographic)
+
+        # Return the results to the frontend
         result = {
-            'message': 'Data received successfully',
-            'demographic': demographic,
-            'description': description,
-            'filename': file.filename
+            "explanation": explanation,
+            "score": score,
+            "demographic": demographic,
+            "processed_data": processed_data
         }
-
-        # Return a success response
         return jsonify(result), 200
     except Exception as e:
-        logging.error(f"Error occurred: {str(e)}")  # Log the error for debugging
+        logging.error(f"Error occurred: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Use the PORT environment variable or default to 5000
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
