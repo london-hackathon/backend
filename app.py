@@ -5,6 +5,7 @@ import os
 from gender_count import count_gender  # Import gender counting function
 from analyze_bias import analyze_bias  # Import bias analysis function
 from age_count import count_age  # Import age counting function
+from race_count import raceEthnicityCount  # Import race/ethnicity counting function
 
 # Set up basic configuration for logging
 logging.basicConfig(level=logging.DEBUG)
@@ -50,6 +51,13 @@ def analysis_endpoint():
             if "error" in age_data:
                 return jsonify(age_data), 400
             processed_data = age_data
+
+        elif demographic.lower() in ["race", "ethnicity"]:
+            # Race/Ethnicity demographic processing
+            race_ethnicity_data = raceEthnicityCount(file_path)
+            if "error" in race_ethnicity_data:
+                return jsonify(race_ethnicity_data), 400
+            processed_data = race_ethnicity_data
 
         else:
             return jsonify({'error': f"Unsupported demographic: {demographic}"}), 400
